@@ -1,6 +1,6 @@
 # Brain-metabolism-and-connectivity-dynamics
 
-##Description
+## Description
 This repository contains the scripts used for the study "Multiscale excitation-inhibition balance dynamics: integrating metabolite kinetics with time-varying executive networks"
 It implements the analysis of novel interleaved dynamic functional MRI and functional edited-MRS to investigate temporal variation in neurometabolites and neurovascular compartments as a function of cognitive load increase. 
 
@@ -26,7 +26,7 @@ Francesca Saviola, Stefano Tambalo, Laura Beghini, Asia Ferrari, Barbara Cassone
 https://biorxiv.org/cgi/content/short/2024.10.30.621153v1
 
 
-##Requirements
+## Requirements
 - MATLAB R2020b or later
 - R 4.0.0 or later
 - Bash shell (Unix-based system or Windows Subsystem for Linux)
