@@ -1,0 +1,128 @@
+---
+title: "EIB_behavioural_dprime"
+author: "Barbara Cassone"
+date: "AUTOMATIC"
+output: html_document
+---
+
+```{r echo=FALSE, message=FALSE}
+if(!require("pacman")) install.packages("pacman")
+library(pacman)
+p_load("reshape2","ez","dplyr","lme4","lmerTest", "rmarkdown", "lattice", "ggplot2", "DACF")
+select <- dplyr::select
+summarize <- dplyr::summarize
+```
+
+### Analysis on 35 participants (only fMRI blocks)
+```{r}
+# load the dataset (check the "sep" option)
+dt <- read.csv2("C:/Users/Utente/Desktop/Work/MR-Methods/EIB/EIB_behav_acc_dprime_meanRT_fMRI_35s.csv", header = TRUE, sep = ",")
+str(dt)
+
+# convert database from wide to long format as required for performing ANOVA
+dtl <- select(dt, 1:3, starts_with("dprime_")) %>% 
+  melt(id.vars = c("Subject","Gender","Age"),
+       variable.name = "Runs",
+       value.name = "Scores")
+dtl <- as.data.frame(dtl)
+dtl$Subject <- as.factor(dtl$Subject)
+dtl$Gender <- as.factor(dtl$Gender)
+dtl$Age <- as.numeric(dtl$Age)
+dtl$Scores <- as.numeric(dtl$Scores)
+str(dtl)
+  
+# XY-plots by subjects
+xyplot(Scores ~ Runs|Subject, dtl, type = c("g","p","a"), ylab = "d'", xlab = "Run", scales = list(x = list(at = c(1,2,3), labels = c("0-b", "1-b", "2-b")), y = list(at = c(0,2.5,5), labels = c("0","2.5","5"))), ylim = c(0,5.5), main = "d prime by run by subject", as.table = TRUE)
+
+# boxplot 
+boxplot(Scores ~ Runs, dtl, yim = c(0,5.5), main = "d prime by run")
+
+# compute descriptive statistics
+descr_stats <- group_by(dtl, Runs) %>%
+  summarize(dprime_mean = mean(Scores, na.rm = TRUE), dprime_sd = sd(Scores, na.rm = TRUE))
+print(as.data.frame(descr_stats))
+
+# remove outliers (https://www.statology.org/remove-outliers-r/)
+quantile_calc <- group_by(dtl, Runs) %>%
+  summarize(Q1 = quantile(Scores, .25), Q3 = quantile(Scores, .75), IQR = IQR(Scores))
+quantile_calc <- as.data.frame(quantile_calc)
+
+try(dtl[(dtl$Runs == "dprime_0back" & dtl$Scores < quantile_calc[1,2] - 1.5*quantile_calc[1,4]) | 
+    (dtl$Runs == "dprime_0back" & dtl$Scores > quantile_calc[1,3] + 1.5*quantile_calc[1,4]),]$Scores <- NaN, silent = TRUE)
+print(paste('N. of outliers removed (0-back): ', sum(is.nan(dtl[dtl$Runs == "dprime_0back",]$Scores))))
+try(dtl[(dtl$Runs == "dprime_1back" & dtl$Scores < quantile_calc[2,2] - 1.5*quantile_calc[2,4]) | 
+    (dtl$Runs == "dprime_1back" & dtl$Scores > quantile_calc[2,3] + 1.5*quantile_calc[2,4]),]$Scores <- NaN, silent = TRUE)
+print(paste('N. of outliers removed (1-back): ', sum(is.nan(dtl[dtl$Runs == "dprime_1back",]$Scores))))
+try(dtl[(dtl$Runs == "dprime_2back" & dtl$Scores < quantile_calc[3,2] - 1.5*quantile_calc[3,4]) | 
+    (dtl$Runs == "dprime_2back" & dtl$Scores > quantile_calc[3,3] + 1.5*quantile_calc[3,4]),]$Scores <- NaN, silent = TRUE)
+print(paste('N. of outliers removed (2-back): ', sum(is.nan(dtl[dtl$Runs == "dprime_2back",]$Scores))))
+
+# test for distribution normality
+try(shapiro.test(dtl[dtl$Runs == "dprime_0back", "Scores"]), silent = TRUE)
+try(shapiro.test(dtl[dtl$Runs == "dprime_1back", "Scores"]), silent = TRUE)
+try(shapiro.test(dtl[dtl$Runs == "dprime_2back", "Scores"]), silent = TRUE)
+
+# run Friedman Test (non-parametric alternatives for linear mixed models, https://bookdown.org/pingapang9/linear_models_bookdown/nonpar2.html)
+friedman.test(y = dtl$Scores, groups = dtl$Runs, blocks = dtl$Subject, na.rm)
+
+# run post hoc pairwise comparisons
+pairwise.wilcox.test(dtl$Scores, dtl$Runs, p.adj = "bonf", exact = FALSE)
+```
+
+<br/><br/>
+
+### Analysis on 12 participants (only fMRS blocks)
+```{r}
+# load the dataset (check the "sep" option)
+dt <- read.csv2("C:/Users/Utente/Desktop/Work/MR-Methods/EIB/EIB_behav_acc_dprime_meanRT_fMRS_12s.csv", header = TRUE, sep = ",")
+str(dt)
+
+# convert database from wide to long format as required for performing ANOVA
+dtl <- select(dt, 1:3, starts_with("dprime_")) %>% 
+  melt(id.vars = c("Subject","Gender","Age"),
+       variable.name = "Runs",
+       value.name = "Scores")
+dtl <- as.data.frame(dtl)
+dtl$Subject <- as.factor(dtl$Subject)
+dtl$Gender <- as.factor(dtl$Gender)
+dtl$Age <- as.numeric(dtl$Age)
+dtl$Scores <- as.numeric(dtl$Scores)
+str(dtl)
+  
+# XY-plots by subjects
+xyplot(Scores ~ Runs|Subject, dtl, type = c("g","p","a"), ylab = "d'", xlab = "Run", scales = list(x = list(at = c(1,2,3), labels = c("0-b", "1-b", "2-b")), y = list(at = c(2,3.5,5), labels = c("2","3.5","5"))), ylim = c(2,5.5), main = "d prime by run by subject", as.table = TRUE)
+
+# boxplot 
+boxplot(Scores ~ Runs, dtl, yim = c(2,5.5), main = "d prime by run")
+
+# compute descriptive statistics
+descr_stats <- group_by(dtl, Runs) %>%
+  summarize(dprime_mean = mean(Scores, na.rm = TRUE), dprime_sd = sd(Scores, na.rm = TRUE))
+print(as.data.frame(descr_stats))
+
+# remove outliers (https://www.statology.org/remove-outliers-r/)
+quantile_calc <- group_by(dtl, Runs) %>%
+  summarize(Q1 = quantile(Scores, .25), Q3 = quantile(Scores, .75), IQR = IQR(Scores))
+quantile_calc <- as.data.frame(quantile_calc)
+
+try(dtl[(dtl$Runs == "dprime_0back" & dtl$Scores < quantile_calc[1,2] - 1.5*quantile_calc[1,4]) | 
+    (dtl$Runs == "dprime_0back" & dtl$Scores > quantile_calc[1,3] + 1.5*quantile_calc[1,4]),]$Scores <- NaN, silent = TRUE)
+print(paste('N. of outliers removed (0-back): ', sum(is.nan(dtl[dtl$Runs == "dprime_0back",]$Scores))))
+try(dtl[(dtl$Runs == "dprime_1back" & dtl$Scores < quantile_calc[2,2] - 1.5*quantile_calc[2,4]) | 
+    (dtl$Runs == "dprime_1back" & dtl$Scores > quantile_calc[2,3] + 1.5*quantile_calc[2,4]),]$Scores <- NaN, silent = TRUE)
+print(paste('N. of outliers removed (1-back): ', sum(is.nan(dtl[dtl$Runs == "dprime_1back",]$Scores))))
+try(dtl[(dtl$Runs == "dprime_2back" & dtl$Scores < quantile_calc[3,2] - 1.5*quantile_calc[3,4]) | 
+    (dtl$Runs == "dprime_2back" & dtl$Scores > quantile_calc[3,3] + 1.5*quantile_calc[3,4]),]$Scores <- NaN, silent = TRUE)
+print(paste('N. of outliers removed (2-back): ', sum(is.nan(dtl[dtl$Runs == "dprime_2back",]$Scores))))
+
+# test for distribution normality
+try(shapiro.test(dtl[dtl$Runs == "dprime_0back", "Scores"]), silent = TRUE)
+try(shapiro.test(dtl[dtl$Runs == "dprime_1back", "Scores"]), silent = TRUE)
+try(shapiro.test(dtl[dtl$Runs == "dprime_2back", "Scores"]), silent = TRUE)
+
+# run Friedman Test (non-parametric alternatives for linear mixed models, https://bookdown.org/pingapang9/linear_models_bookdown/nonpar2.html)
+friedman.test(y = dtl$Scores, groups = dtl$Runs, blocks = dtl$Subject, na.rm)
+
+# run post hoc pairwise comparisons
+pairwise.wilcox.test(dtl$Scores, dtl$Runs, p.adj = "bonf", exact = FALSE)
+```

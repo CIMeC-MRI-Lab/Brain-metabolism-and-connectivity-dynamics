@@ -1,0 +1,76 @@
+---
+title: "EIB_behav_EIB_effect_on_dprime"
+author: "Barbara Cassone"
+date: "AUTOMATIC"
+output: html_document
+---
+
+```{r echo=FALSE, message=FALSE}
+if(!require("pacman")) install.packages("pacman")
+library(pacman)
+p_load("reshape2","ez","dplyr","lme4","lmerTest", "rmarkdown", "lattice", "ggplot2", "emmeans")
+select <- dplyr::select
+summarize <- dplyr::summarize
+#knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+```{r}
+# load the dataset (check the "sep" option)
+dt <- read.csv2("C:/Users/Utente/Desktop/Work/MR-Methods/EIB/EIB_behav_acc_dprime_meanRT_fMRS_12s.csv", header = TRUE, sep = ",")
+
+# convert database from wide to long format as required for performing ANOVA
+dtl <- select(dt, 1:3, starts_with("dprime_")) %>% 
+  melt(id.vars = c("Subject","Gender","Age"),
+       variable.name = "Runs",
+       value.name = "Scores")
+dtl <- as.data.frame(dtl)
+dtl$Scores <- as.numeric(dtl$Scores)
+
+# load EIB metrics
+EIB_dt <- read.csv2("C:/Users/Utente/Desktop/Work/MR-Methods/EIB/info_EIB_fMRS_12s.csv", header = TRUE)
+
+# merge databases
+dtc <- cbind(dtl,EIB_dt[,5:16])
+dtc$Subject <- as.factor(dtc$Subject)
+dtc$Gender <- as.factor(dtc$Gender)
+dtc$Age <- as.numeric(dtc$Age)
+dtc$Runs <- as.factor(dtc$Runs)
+dtc$Scores <- as.numeric(dtc$Scores)
+dtc$GABA <- as.numeric(dtc$GABA)
+dtc$GABA_OD <- as.numeric(dtc$GABA_OD)
+dtc$GABA_ST <- as.numeric(dtc$GABA_ST)
+dtc$GABA_AUC <- as.numeric(dtc$GABA_AUC)
+dtc$Glx <- as.numeric(dtc$Glx)
+dtc$Glx_OD <- as.numeric(dtc$Glx_OD)
+dtc$Glx_ST <- as.numeric(dtc$Glx_ST)
+dtc$Glx_AUC <- as.numeric(dtc$Glx_AUC)
+dtc$EIB <- as.numeric(dtc$EIB)
+dtc$EIB_OD <- as.numeric(dtc$EIB_OD)
+dtc$EIB_ST <- as.numeric(dtc$EIB_ST)
+dtc$EIB_AUC <- as.numeric(dtc$EIB_AUC)
+str(dtc)
+```
+
+```{r}
+# loop through EIB metrics
+fitp <- vector()
+for (i in 6:17) {
+  print(paste('EIB independent variable (EIB_IV):', colnames(dtc)[i]))
+  
+  # run glmer models
+  EIB_IV <- dtc[,i]
+  fit <- glmer(dtc$Scores ~ EIB_IV + dtc$Runs + dtc$Gender + dtc$Age + (1|dtc$Subject), family = Gamma(link = "log"), control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 100000)))
+  
+  print(summary(fit))
+  fitp <- c(fitp,coef(summary(fit))[2,4])
+}
+```
+
+```{r}
+# apply multiple comparison correction
+p_FDR <- p.adjust(fitp, "fdr")
+for (i in 6:17) {
+  print(paste('Corrected glmer p-value for EIB independent variable', colnames(dtc)[i]))
+  print(p_FDR[i-5])
+  }
+```

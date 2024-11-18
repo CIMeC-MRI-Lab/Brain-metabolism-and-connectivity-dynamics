@@ -1,0 +1,94 @@
+---
+title: "EIB_behavioural_ReactionTimes"
+author: "Barbara Cassone"
+date: "AUTOMATIC"
+output: html_document
+---
+
+```{r echo=FALSE, message=FALSE}
+if(!require("pacman")) install.packages("pacman")
+library(pacman)
+p_load("reshape2","ez","dplyr","lme4","lmerTest", "rmarkdown", "lattice", "ggplot2", "emmeans")
+select <- dplyr::select
+summarize <- dplyr::summarize
+```
+
+### Analysis on 35 participants (only fMRI blocks)
+```{r}
+# load the dataset (check the "sep" option)
+dt0 <- read.csv2("C:/Users/Utente/Desktop/Work/MR-Methods/EIB/EIB_behav_RT_wide_0back_fMRI_35s.csv", header = TRUE, sep = ",")
+dt1 <- read.csv2("C:/Users/Utente/Desktop/Work/MR-Methods/EIB/EIB_behav_RT_wide_1back_fMRI_35s.csv", header = TRUE, sep = ",")
+dt2 <- read.csv2("C:/Users/Utente/Desktop/Work/MR-Methods/EIB/EIB_behav_RT_wide_2back_fMRI_35s.csv", header = TRUE, sep = ",")
+dtl <- rbind(dt0, dt1, dt2)
+dtl <- as.data.frame(dtl)
+
+dtl$Subject <- as.factor(dtl$Subject)
+dtl$Gender <- as.factor(dtl$Gender)
+dtl$Block <- as.factor(dtl$Block)
+dtl$Runs <- as.factor(dtl$Runs)
+dtl$Age <- as.numeric(dtl$Age)
+dtl$Nrisp <- as.numeric(dtl$Nrisp)
+dtl$RT <- as.numeric(dtl$RT)
+str(dtl)
+
+# boxplot 
+boxplot(RT ~ Runs, dtl, main = "RT by run")
+
+# compute descriptive statistics
+descr_stats <- group_by(dtl, Runs) %>%
+  summarize(RT_mean = mean(RT, na.rm = TRUE), RT_sd = sd(RT, na.rm = TRUE))
+print(as.data.frame(descr_stats))
+
+# test for distribution normality
+try(shapiro.test(dtl[dtl$Runs == "0back", "RT"]), silent = TRUE)
+try(shapiro.test(dtl[dtl$Runs == "1back", "RT"]), silent = TRUE)
+try(shapiro.test(dtl[dtl$Runs == "2back", "RT"]), silent = TRUE)
+
+# perform linear mixed model analysis (based on http://doi.org/10.3389/fpsyg.2015.01171) (this solution is generally preferred with respect to a repeated-measure ANCOVA; https://www.researchgate.net/post/Performing-repeated-measures-ANCOVA-in-R)
+fitLMM <- glmer(RT ~ Runs + Gender + Age + Block + Nrisp + (Runs|Subject), data = dtl, Gamma(link = "log"), control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 100000))) 
+summary(fitLMM)
+
+# perform post hoc paiwise comparisons
+emmeans(fitLMM, list(pairwise ~ Runs), adjust = "tukey")
+```
+
+<br/><br/>
+
+### Analysis on 12 participants (only fMRS blocks)
+```{r}
+# load the dataset (check the "sep" option)
+dt0 <- read.csv2("C:/Users/Utente/Desktop/Work/MR-Methods/EIB/EIB_behav_RT_wide_0back_fMRS_12s.csv", header = TRUE, sep = ",")
+dt1 <- read.csv2("C:/Users/Utente/Desktop/Work/MR-Methods/EIB/EIB_behav_RT_wide_1back_fMRS_12s.csv", header = TRUE, sep = ",")
+dt2 <- read.csv2("C:/Users/Utente/Desktop/Work/MR-Methods/EIB/EIB_behav_RT_wide_2back_fMRS_12s.csv", header = TRUE, sep = ",")
+dtl <- rbind(dt0, dt1, dt2)
+dtl <- as.data.frame(dtl)
+
+dtl$Subject <- as.factor(dtl$Subject)
+dtl$Gender <- as.factor(dtl$Gender)
+dtl$Block <- as.factor(dtl$Block)
+dtl$Runs <- as.factor(dtl$Runs)
+dtl$Age <- as.numeric(dtl$Age)
+dtl$Nrisp <- as.numeric(dtl$Nrisp)
+dtl$RT <- as.numeric(dtl$RT)
+str(dtl)
+
+# boxplot 
+boxplot(RT ~ Runs, dtl, main = "RT by run")
+
+# compute descriptive statistics
+descr_stats <- group_by(dtl, Runs) %>%
+  summarize(RT_mean = mean(RT, na.rm = TRUE), RT_sd = sd(RT, na.rm = TRUE))
+print(as.data.frame(descr_stats))
+
+# test for distribution normality
+try(shapiro.test(dtl[dtl$Runs == "0back", "RT"]), silent = TRUE)
+try(shapiro.test(dtl[dtl$Runs == "1back", "RT"]), silent = TRUE)
+try(shapiro.test(dtl[dtl$Runs == "2back", "RT"]), silent = TRUE)
+
+# perform linear mixed model analysis (based on http://doi.org/10.3389/fpsyg.2015.01171) (this solution is generally preferred with respect to a repeated-measure ANCOVA; https://www.researchgate.net/post/Performing-repeated-measures-ANCOVA-in-R)
+fitLMM <- glmer(RT ~ Runs + Gender + Age + Block + Nrisp + (Runs|Subject), data = dtl, Gamma(link = "log"), control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 100000))) 
+summary(fitLMM)
+
+# perform post hoc paiwise comparisons
+emmeans(fitLMM, list(pairwise ~ Runs), adjust = "tukey")
+```

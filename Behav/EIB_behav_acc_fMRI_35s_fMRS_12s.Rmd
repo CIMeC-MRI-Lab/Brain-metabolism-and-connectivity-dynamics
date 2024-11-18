@@ -1,0 +1,158 @@
+---
+title: "EIB_behavioural_accuracy"
+author: "Barbara Cassone"
+date: "AUTOMATIC"
+output: html_document
+---
+
+```{r echo=FALSE, message=FALSE}
+if(!require("pacman")) install.packages("pacman")
+library(pacman)
+p_load("reshape2","ez","dplyr","lme4","lmerTest", "rmarkdown", "lattice", "ggplot2", "DACF")
+select <- dplyr::select
+summarize <- dplyr::summarize
+```
+
+### Analysis on 35 participants (only fMRI blocks)
+```{r}
+# load the dataset (check the "sep" option)
+dt <- read.csv2("C:/Users/Utente/Desktop/Work/MR-Methods/EIB/EIB_behav_acc_dprime_meanRT_fMRI_35s.csv", header = TRUE, sep = ",")
+str(dt)
+
+# convert database from wide to long format as required for performing ANOVA
+dtl <- select(dt, 1:3, starts_with("Acc_")) %>% 
+  melt(id.vars = c("Subject","Gender","Age"),
+       variable.name = "Runs",
+       value.name = "Scores")
+dtl <- as.data.frame(dtl)
+dtl$Subject <- as.factor(dtl$Subject)
+dtl$Gender <- as.factor(dtl$Gender)
+dtl$Scores <- as.numeric(dtl$Scores)
+dtl$Age <- as.numeric(dtl$Age)
+str(dtl)
+  
+# XY-plots by subjects
+xyplot(Scores ~ Runs|Subject, dtl, type = c("g","p","a"), ylab = "ACC (%)", xlab = "Run", scales = list(x = list(at = c(1,2,3), labels = c("0-b", "1-b", "2-b")), y = list(at = c(20,60,100), labels = c("20","60","100"))), ylim = c(15,110), main = "Accuracy by run by subject", as.table = TRUE)
+
+# boxplot 
+boxplot(Scores ~ Runs, dtl, yim = c(15,110), main = "Accuracy by run")
+
+# compute descriptive statistics
+descr_stats <- group_by(dtl, Runs) %>%
+  summarize(Acc_mean = mean(Scores, na.rm = TRUE), Acc_sd = sd(Scores, na.rm = TRUE))
+print(as.data.frame(descr_stats))
+
+# remove outliers (https://www.statology.org/remove-outliers-r/)
+quantile_calc <- group_by(dtl, Runs) %>%
+  summarize(Q1 = quantile(Scores, .25), Q3 = quantile(Scores, .75), IQR = IQR(Scores))
+quantile_calc <- as.data.frame(quantile_calc)
+
+try(dtl[(dtl$Runs == "Acc_0back" & dtl$Scores < quantile_calc[1,2] - 1.5*quantile_calc[1,4]) | 
+    (dtl$Runs == "Acc_0back" & dtl$Scores > quantile_calc[1,3] + 1.5*quantile_calc[1,4]),]$Scores <- NaN, silent = TRUE)
+print(paste('N. of outliers removed (0-back): ', sum(is.nan(dtl[dtl$Runs == "Acc_0back",]$Scores))))
+try(dtl[(dtl$Runs == "Acc_1back" & dtl$Scores < quantile_calc[2,2] - 1.5*quantile_calc[2,4]) | 
+    (dtl$Runs == "Acc_1back" & dtl$Scores > quantile_calc[2,3] + 1.5*quantile_calc[2,4]),]$Scores <- NaN, silent = TRUE)
+print(paste('N. of outliers removed (1-back): ', sum(is.nan(dtl[dtl$Runs == "Acc_1back",]$Scores))))
+try(dtl[(dtl$Runs == "Acc_2back" & dtl$Scores < quantile_calc[3,2] - 1.5*quantile_calc[3,4]) | 
+    (dtl$Runs == "Acc_2back" & dtl$Scores > quantile_calc[3,3] + 1.5*quantile_calc[3,4]),]$Scores <- NaN, silent = TRUE)
+print(paste('N. of outliers removed (2-back): ', sum(is.nan(dtl[dtl$Runs == "Acc_2back",]$Scores))))
+
+# test for distribution normality
+try(shapiro.test(dtl[dtl$Runs == "Acc_0back", "Scores"]), silent = TRUE)
+try(shapiro.test(dtl[dtl$Runs == "Acc_1back", "Scores"]), silent = TRUE)
+try(shapiro.test(dtl[dtl$Runs == "Acc_2back", "Scores"]), silent = TRUE)
+
+# check for ceiling effect ($ceiling.percentage > 15% = 0.15) https://doi.org/10.3758/s13428-020-01407-2
+x <- dtl[dtl$Runs == "Acc_0back", "Scores"]
+values_0b <- x[!is.nan(x)]
+x <- dtl[dtl$Runs == "Acc_1back", "Scores"]
+values_1b <- x[!is.nan(x)]
+x <- dtl[dtl$Runs == "Acc_2back", "Scores"]
+values_2b <- x[!is.nan(x)]
+
+rec.mean.var(values_0b)
+rec.mean.var(values_1b)
+rec.mean.var(values_2b)
+
+# run F star test for one-way ANOVA ("Method a is a liberal approach that yields accurate effect size estimates but has mildly inflated type I error rates, b is a conservative approach with well-controlled type I error rates that have good, but less accurate than a, effect estimates", https://cran.r-project.org/web/packages/DACF/vignettes/DACF-vignette.html)
+lw.f.star(dtl, Scores ~ Runs + Gender + Age, "b")
+
+# run Friedman Test (non-parametric alternatives for linear mixed models, https://bookdown.org/pingapang9/linear_models_bookdown/nonpar2.html)
+friedman.test(y = dtl$Scores, groups = dtl$Runs, blocks = dtl$Subject, na.rm)
+
+# run post hoc pairwise comparisons
+pairwise.wilcox.test(dtl$Scores, dtl$Runs, p.adj = "bonf", exact = FALSE)
+```
+
+<br/><br/>
+
+### Analysis on 12 participants (only fMRS blocks)
+```{r}
+# load the dataset (check the "sep" option)
+dt <- read.csv2("C:/Users/Utente/Desktop/Work/MR-Methods/EIB/EIB_behav_acc_dprime_meanRT_fMRS_12s.csv", header = TRUE, sep = ",")
+str(dt)
+
+# convert database from wide to long format as required for performing ANOVA
+dtl <- select(dt, 1:3, starts_with("Acc_")) %>% 
+  melt(id.vars = c("Subject","Gender","Age"),
+       variable.name = "Runs",
+       value.name = "Scores")
+dtl <- as.data.frame(dtl)
+dtl$Subject <- as.factor(dtl$Subject)
+dtl$Gender <- as.factor(dtl$Gender)
+dtl$Age <- as.numeric(dtl$Age)
+dtl$Scores <- as.numeric(dtl$Scores)
+str(dtl)
+  
+# XY-plots by subjects
+xyplot(Scores ~ Runs|Subject, dtl, type = c("g","p","a"), ylab = "ACC (%)", xlab = "Run", scales = list(x = list(at = c(1,2,3), labels = c("0-b", "1-b", "2-b")), y = list(at = c(80,90,100), labels = c("80","90","100"))), ylim = c(75,110), main = "Accuracy by run by subject", as.table = TRUE)
+
+# boxplot 
+boxplot(Scores ~ Runs, dtl, yim = c(75,110), main = "Accuracy by run")
+
+# compute descriptive statistics
+descr_stats <- group_by(dtl, Runs) %>%
+  summarize(Acc_mean = mean(Scores, na.rm = TRUE), Acc_sd = sd(Scores, na.rm = TRUE))
+print(as.data.frame(descr_stats))
+
+# remove outliers (https://www.statology.org/remove-outliers-r/)
+quantile_calc <- group_by(dtl, Runs) %>%
+  summarize(Q1 = quantile(Scores, .25), Q3 = quantile(Scores, .75), IQR = IQR(Scores))
+quantile_calc <- as.data.frame(quantile_calc)
+
+try(dtl[(dtl$Runs == "Acc_0back" & dtl$Scores < quantile_calc[1,2] - 1.5*quantile_calc[1,4]) | 
+    (dtl$Runs == "Acc_0back" & dtl$Scores > quantile_calc[1,3] + 1.5*quantile_calc[1,4]),]$Scores <- NaN, silent = TRUE)
+print(paste('N. of outliers removed (0-back): ', sum(is.nan(dtl[dtl$Runs == "Acc_0back",]$Scores))))
+try(dtl[(dtl$Runs == "Acc_1back" & dtl$Scores < quantile_calc[2,2] - 1.5*quantile_calc[2,4]) | 
+    (dtl$Runs == "Acc_1back" & dtl$Scores > quantile_calc[2,3] + 1.5*quantile_calc[2,4]),]$Scores <- NaN, silent = TRUE)
+print(paste('N. of outliers removed (1-back): ', sum(is.nan(dtl[dtl$Runs == "Acc_1back",]$Scores))))
+try(dtl[(dtl$Runs == "Acc_2back" & dtl$Scores < quantile_calc[3,2] - 1.5*quantile_calc[3,4]) | 
+    (dtl$Runs == "Acc_2back" & dtl$Scores > quantile_calc[3,3] + 1.5*quantile_calc[3,4]),]$Scores <- NaN, silent = TRUE)
+print(paste('N. of outliers removed (2-back): ', sum(is.nan(dtl[dtl$Runs == "Acc_2back",]$Scores))))
+
+# test for distribution normality
+try(shapiro.test(dtl[dtl$Runs == "Acc_0back", "Scores"]), silent = TRUE)
+try(shapiro.test(dtl[dtl$Runs == "Acc_1back", "Scores"]), silent = TRUE)
+try(shapiro.test(dtl[dtl$Runs == "Acc_2back", "Scores"]), silent = TRUE)
+
+# check for ceiling effect ($ceiling.percentage > 15% = 0.15) https://doi.org/10.3758/s13428-020-01407-2
+x <- dtl[dtl$Runs == "Acc_0back", "Scores"]
+values_0b <- x[!is.nan(x)]
+x <- dtl[dtl$Runs == "Acc_1back", "Scores"]
+values_1b <- x[!is.nan(x)]
+x <- dtl[dtl$Runs == "Acc_2back", "Scores"]
+values_2b <- x[!is.nan(x)]
+
+rec.mean.var(values_0b)
+rec.mean.var(values_1b)
+rec.mean.var(values_2b)
+
+# run F star test for one-way ANOVA ("Method a is a liberal approach that yields accurate effect size estimates but has mildly inflated type I error rates, b is a conservative approach with well-controlled type I error rates that have good, but less accurate than a, effect estimates", https://cran.r-project.org/web/packages/DACF/vignettes/DACF-vignette.html)
+lw.f.star(dtl, Scores ~ Runs + Gender + Age, "b")
+
+# run Friedman Test (non-parametric alternatives for linear mixed models, https://bookdown.org/pingapang9/linear_models_bookdown/nonpar2.html)
+friedman.test(y = dtl$Scores, groups = dtl$Runs, blocks = dtl$Subject, na.rm)
+
+# run post hoc pairwise comparisons
+pairwise.wilcox.test(dtl$Scores, dtl$Runs, p.adj = "bonf", exact = FALSE)
+```
