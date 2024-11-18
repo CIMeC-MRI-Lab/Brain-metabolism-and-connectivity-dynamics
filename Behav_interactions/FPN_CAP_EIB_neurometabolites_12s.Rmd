@@ -1,0 +1,162 @@
+---
+title: "FPN_CAP_EIB_neurometabolites_12s"
+author: "Asia Ferrari"
+date: "2024-10-25"
+output: html_document
+---
+
+```{r}
+# This R script analyzes the relationship between neurochemical data (GABA, Glx) and behavioral data (EIB)
+# in relation to network variables (INDegree, OUTDegree, Resilience, etc.). It includes data loading, normality tests,
+# linear modeling with Gamma family GLMs.
+
+# Load required libraries
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(readxl)
+library(MASS)
+library(knitr)
+library(kableExtra)
+library(car)
+library(multcomp)
+library(stats)
+library(tidyr)
+library(emmeans)
+library(extrafont)
+library(lme4)
+
+# Set knitr options to suppress warnings and messages
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Load dataset
+EIB_dt <- read.csv("C:/Users/Asia/Desktop/EIB_FPN_CAP_behavior_AF/EIB_fMRS_FPN_CAP_12s_norest.csv", sep = ';')
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# -------------------------------
+# Section 1: Normality Testing
+# -------------------------------
+
+# Plot histograms and Q-Q plots for visual inspection
+par(mfrow = c(2, 3))
+hist(EIB_dt$GABA, main = "Histogram of GABA", xlab = "GABA", col = "lightblue", breaks = 20)
+qqnorm(EIB_dt$GABA, main = "Q-Q Plot of GABA"); qqline(EIB_dt$GABA, col = "red")
+hist(EIB_dt$Glx, main = "Histogram of Glx", xlab = "Glx", col = "lightblue", breaks = 20)
+qqnorm(EIB_dt$Glx, main = "Q-Q Plot of Glx"); qqline(EIB_dt$Glx, col = "red")
+hist(EIB_dt$EIB, main = "Histogram of EIB", xlab = "EIB", col = "lightblue", breaks = 20)
+qqnorm(EIB_dt$EIB, main = "Q-Q Plot of EIB"); qqline(EIB_dt$EIB, col = "red")
+
+# Shapiro-Wilk test for normality
+shapiro_test_GABA <- shapiro.test(EIB_dt$GABA)
+shapiro_test_Glx <- shapiro.test(EIB_dt$Glx)
+shapiro_test_EIB <- shapiro.test(EIB_dt$EIB)
+
+# Print Shapiro-Wilk test results
+shapiro_test_GABA; shapiro_test_Glx; shapiro_test_EIB
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+# -------------------------------
+# Section 2: Model Fitting and Summary Extraction
+# -------------------------------
+
+# Define independent variables (columns) to substitute in models
+columns_to_substitute <- c("INDegree", "OUTDegree", "Resilience", "BtwCentrality", "Occurrences")
+
+# Initialize storage for results
+fit_results <- list()
+
+# Loop over columns to fit models for Glxuracy (Glx), Reaction Time (GABA), and d-prime (EIB)
+for (column_name in columns_to_substitute) {
+  
+  # Print the column being processed
+  print(paste("Substituting BTC with:", column_name))
+  
+  # Model for Glxuracy (Glx)
+  formula_Glx <- as.formula(paste("Glx ~", column_name, "+ Runs + Gender + Age + (1|Subject)"))
+  fit_Glx <- glmer(formula_Glx, data = EIB_dt, family = Gamma(link = "log"), control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))
+  
+  # Model for Reaction Time (GABA)
+  formula_GABA <- as.formula(paste("GABA ~", column_name, "+ Runs + Gender + Age + (1|Subject)"))
+  fit_GABA <- glmer(formula_GABA, data = EIB_dt, family = Gamma(link = "log"), control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))
+  
+  # Model for d-prime (EIB)
+  formula_EIB <- as.formula(paste("EIB ~", column_name, "+ Runs + Gender + Age + (1|Subject)"))
+  fit_EIB <- glmer(formula_EIB, data = EIB_dt, family = Gamma(link = "log"), control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))
+  
+  # Extract beta coefficients and p-values for each model
+  fit_results[[column_name]] <- data.frame(
+    Variable = column_name,
+    
+    # Glxuracy model: Beta and p-value for fixed and 1-back, 2-back interactions
+    Beta_Glx_FIXED = coef(summary(fit_Glx))[2, 1],
+    P_Value_Glx_FIXED = coef(summary(fit_Glx))[2, 4],
+    Beta_Glx_1back = coef(summary(fit_Glx))[3, 1],
+    P_Value_Glx_1back = coef(summary(fit_Glx))[3, 4],
+    Beta_Glx_2back = coef(summary(fit_Glx))[4, 1],
+    P_Value_Glx_2back = coef(summary(fit_Glx))[4, 4],
+    
+    # Reaction Time model: Beta and p-value for fixed and 1-back, 2-back interactions
+    Beta_GABA_FIXED = coef(summary(fit_GABA))[2, 1],
+    P_Value_GABA_FIXED = coef(summary(fit_GABA))[2, 4],
+    Beta_GABA_1back = coef(summary(fit_GABA))[3, 1],
+    P_Value_GABA_1back = coef(summary(fit_GABA))[3, 4],
+    Beta_GABA_2back = coef(summary(fit_GABA))[4, 1],
+    P_Value_GABA_2back = coef(summary(fit_GABA))[4, 4],
+    
+    # d-prime model: Beta and p-value for fixed and 1-back, 2-back interactions
+    Beta_EIB_FIXED = coef(summary(fit_EIB))[2, 1],
+    P_Value_EIB_FIXED = coef(summary(fit_EIB))[2, 4],
+    Beta_EIB_1back = coef(summary(fit_EIB))[3, 1],
+    P_Value_EIB_1back = coef(summary(fit_EIB))[3, 4],
+    Beta_EIB_2back = coef(summary(fit_EIB))[4, 1],
+    P_Value_EIB_2back = coef(summary(fit_EIB))[4, 4]
+  )
+}
+
+# Combine results and adjust p-values using FDR
+final_results <- do.call(rbind, fit_results) %>%
+  mutate(
+    Adjusted_P_Value_Glx_FIXED = p.adjust(P_Value_Glx_FIXED, method = "fdr"),
+    Adjusted_P_Value_Glx_1back = p.adjust(P_Value_Glx_1back, method = "fdr"),
+    Adjusted_P_Value_Glx_2back = p.adjust(P_Value_Glx_2back, method = "fdr"),
+    Adjusted_P_Value_GABA_FIXED = p.adjust(P_Value_GABA_FIXED, method = "fdr"),
+    Adjusted_P_Value_GABA_1back = p.adjust(P_Value_GABA_1back, method = "fdr"),
+    Adjusted_P_Value_GABA_2back = p.adjust(P_Value_GABA_2back, method = "fdr"),
+    Adjusted_P_Value_EIB_FIXED = p.adjust(P_Value_EIB_FIXED, method = "fdr"),
+    Adjusted_P_Value_EIB_1back = p.adjust(P_Value_EIB_1back, method = "fdr"),
+    Adjusted_P_Value_EIB_2back = p.adjust(P_Value_EIB_2back, method = "fdr")
+  )
+
+# Get all the column names
+current_columns <- colnames(final_results)
+
+# Initialize a vector to store the final column order
+desired_order <- c("Variable")  # Start with the "Variable" column
+
+# Loop through each outcome variable (Glx, GABA, EIB)
+outcome_variables <- c("Glx", "GABA", "EIB")
+
+for (outcome in outcome_variables) {
+  # Find Beta, P_Value, and Adjusted_P_Value columns for each outcome
+  beta_columns <- grep(paste0("^Beta_", outcome), current_columns, value = TRUE)
+  p_value_columns <- grep(paste0("^P_Value_", outcome), current_columns, value = TRUE)
+  adjusted_p_value_columns <- grep(paste0("^Adjusted_P_Value_", outcome), current_columns, value = TRUE)
+  
+  # Append these columns to the desired order
+  desired_order <- c(desired_order, beta_columns, p_value_columns, adjusted_p_value_columns)
+}
+
+# Reorder the columns based on the dynamic desired_order
+final_results <- final_results[, desired_order]
+
+# Render the table in HTML format with kable
+final_results %>%
+  kable(format = "html", caption = "Summary of Model Results with Adjusted P-Values") %>%
+  kable_styling(full_width = FALSE)
+
+```

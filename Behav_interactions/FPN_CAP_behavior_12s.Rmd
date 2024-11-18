@@ -1,0 +1,196 @@
+---
+title: "FPN_CAP_behavior_12s"
+author: "Asia Ferrari"
+date: "2024-11-10"
+output: html_document
+---
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(readxl)
+library(MASS)
+library(knitr)
+library(kableExtra)
+library(car)
+library(multcomp)
+library(stats)
+library(tidyr)
+library(emmeans)
+library(extrafont)
+library(lme4)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Load dataset
+EIB_dt <- read.csv("C:/Users/Asia/Desktop/EIB_FPN_CAP_behavior_AF/EIB_fMRS_FPN_CAP_12s_norest.csv", sep = ';')
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# -------------------------------
+# Section 1: Normality Testing
+# -------------------------------
+
+# Set up the plotting area to have multiple plots in a row
+par(mfrow = c(2, 3))
+
+# Plot histograms and Q-Q plots for visual inspection
+hist(EIB_dt$INDegree, main = "Histogram of INDegree", xlab = "INDegree", col = "lightblue", breaks = 20)
+qqnorm(EIB_dt$INDegree, main = "Q-Q Plot of INDegree"); qqline(EIB_dt$INDegree, col = "red")
+
+hist(EIB_dt$OUTDegree, main = "Histogram of OUTDegree", xlab = "OUTDegree", col = "lightblue", breaks = 20)
+qqnorm(EIB_dt$OUTDegree, main = "Q-Q Plot of OUTDegree"); qqline(EIB_dt$OUTDegree, col = "red")
+
+hist(EIB_dt$Resilience, main = "Histogram of Resilience", xlab = "Resilience", col = "lightblue", breaks = 20)
+qqnorm(EIB_dt$Resilience, main = "Q-Q Plot of Resilience"); qqline(EIB_dt$Resilience, col = "red")
+
+hist(EIB_dt$BtwCentrality, main = "Histogram of BtwCentrality", xlab = "BtwCentrality", col = "lightblue", breaks = 20)
+qqnorm(EIB_dt$BtwCentrality, main = "Q-Q Plot of BtwCentrality"); qqline(EIB_dt$BtwCentrality, col = "red")
+
+hist(EIB_dt$Occurrences, main = "Histogram of Occurrences", xlab = "Occurrences", col = "lightblue", breaks = 20)
+qqnorm(EIB_dt$Occurrences, main = "Q-Q Plot of Occurrences"); qqline(EIB_dt$Occurrences, col = "red")
+
+# Perform Shapiro-Wilk test for normality
+shapiro_test_INDegree <- shapiro.test(EIB_dt$INDegree)
+shapiro_test_OUTDegree <- shapiro.test(EIB_dt$OUTDegree)
+shapiro_test_Resilience <- shapiro.test(EIB_dt$Resilience)
+shapiro_test_BtwCentrality <- shapiro.test(EIB_dt$BtwCentrality)
+shapiro_test_Occurrences <- shapiro.test(EIB_dt$Occurrences)
+
+# Print Shapiro-Wilk test results
+shapiro_test_INDegree
+shapiro_test_OUTDegree
+shapiro_test_Resilience
+shapiro_test_BtwCentrality
+shapiro_test_Occurrences
+
+
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# -------------------------------
+# Section 2: Model Fitting and Summary Extraction
+# -------------------------------
+
+# Define independent variables (columns) to substitute in models
+columns_to_substitute <- c("INDegree_norm", "OUTDegree_norm", "Resilience_norm", "BtwCentrality_norm", "Occurrences_norm")
+
+# Initialize storage for results
+fit_results <- list()
+
+# Loop over columns to fit models for Accuracy (Acc), Reaction Time (RT), and d-prime (dprime)
+for (column_name in columns_to_substitute) {
+  
+  # Print the column being processed
+  print(paste("Substituting BTC with:", column_name))
+  
+  # Model for Accuracy (Acc)
+  formula_Acc <- as.formula(paste("Acc ~", column_name, "* Runs + Gender + Age + (1|Subject)"))
+  fit_Acc <- glmer(formula_Acc, data = EIB_dt, family = Gamma(link = "log"), control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))
+  
+  # Model for Reaction Time (RT)
+  formula_RT <- as.formula(paste("RT ~", column_name, "* Runs + Gender + Age + (1|Subject)"))
+  fit_RT <- glmer(formula_RT, data = EIB_dt, family = Gamma(link = "log"), control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))
+  
+  # Model for d-prime (dprime)
+  formula_dprime <- as.formula(paste("dprime ~", column_name, "* Runs + Gender + Age + (1|Subject)"))
+  fit_dprime <- glmer(formula_dprime, data = EIB_dt, family = Gamma(link = "log"), control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000)))
+  
+  print(fit_Acc)
+  print(fit_RT)
+  print(fit_dprime)
+  
+  # Extract beta coefficients and p-values for each model
+  fit_results[[column_name]] <- data.frame(
+    Variable = column_name,
+    
+    # Accuracy model: Beta and p-value for fixed effects and interactions (1-back and 2-back)
+    Beta_Acc_FIXED = coef(summary(fit_Acc))[2, 1],
+    P_Value_Acc_FIXED = coef(summary(fit_Acc))[2, 4],
+    Beta_Acc_1back = coef(summary(fit_Acc))[3, 1],
+    P_Value_Acc_1back = coef(summary(fit_Acc))[3, 4],
+    Beta_Acc_2back = coef(summary(fit_Acc))[4, 1],
+    P_Value_Acc_2back = coef(summary(fit_Acc))[4, 4],
+    Beta_Acc_1back_interaction = coef(summary(fit_Acc))[7, 1],  # 1-back interaction
+    P_Value_Acc_1back_interaction = coef(summary(fit_Acc))[7, 4],  # 1-back interaction p-value
+    Beta_Acc_2back_interaction = coef(summary(fit_Acc))[8, 1],  # 2-back interaction
+    P_Value_Acc_2back_interaction = coef(summary(fit_Acc))[8, 4],  # 2-back interaction p-value
+    
+    # Reaction Time model: Beta and p-value for fixed effects and interactions (1-back and 2-back)
+    Beta_RT_FIXED = coef(summary(fit_RT))[2, 1],
+    P_Value_RT_FIXED = coef(summary(fit_RT))[2, 4],
+    Beta_RT_1back = coef(summary(fit_RT))[3, 1],
+    P_Value_RT_1back = coef(summary(fit_RT))[3, 4],
+    Beta_RT_2back = coef(summary(fit_RT))[4, 1],
+    P_Value_RT_2back = coef(summary(fit_RT))[4, 4],
+    Beta_RT_1back_interaction = coef(summary(fit_RT))[7, 1],  # 1-back interaction
+    P_Value_RT_1back_interaction = coef(summary(fit_RT))[7, 4],  # 1-back interaction p-value
+    Beta_RT_2back_interaction = coef(summary(fit_RT))[8, 1],  # 2-back interaction
+    P_Value_RT_2back_interaction = coef(summary(fit_RT))[8, 4],  # 2-back interaction p-value
+    
+    # d-prime model: Beta and p-value for fixed effects and interactions (1-back and 2-back)
+    Beta_dprime_FIXED = coef(summary(fit_dprime))[2, 1],
+    P_Value_dprime_FIXED = coef(summary(fit_dprime))[2, 4],
+    Beta_dprime_1back = coef(summary(fit_dprime))[3, 1],
+    P_Value_dprime_1back = coef(summary(fit_dprime))[3, 4],
+    Beta_dprime_2back = coef(summary(fit_dprime))[4, 1],
+    P_Value_dprime_2back = coef(summary(fit_dprime))[4, 4],
+    Beta_dprime_1back_interaction = coef(summary(fit_dprime))[7, 1],  # 1-back interaction
+    P_Value_dprime_1back_interaction = coef(summary(fit_dprime))[7, 4],  # 1-back interaction p-value
+    Beta_dprime_2back_interaction = coef(summary(fit_dprime))[8, 1],  # 2-back interaction
+    P_Value_dprime_2back_interaction = coef(summary(fit_dprime))[8, 4]  # 2-back interaction p-value
+  )
+}
+
+# Combine results and adjust p-values using FDR
+final_results <- do.call(rbind, fit_results) %>%
+  mutate(
+    Adjusted_P_Value_Acc_FIXED = p.adjust(P_Value_Acc_FIXED, method = "fdr"),
+    Adjusted_P_Value_Acc_1back = p.adjust(P_Value_Acc_1back, method = "fdr"),
+    Adjusted_P_Value_Acc_2back = p.adjust(P_Value_Acc_2back, method = "fdr"),
+    Adjusted_P_Value_Acc_1back_interaction = p.adjust(P_Value_Acc_1back_interaction, method = "fdr"),
+    Adjusted_P_Value_Acc_2back_interaction = p.adjust(P_Value_Acc_2back_interaction, method = "fdr"),
+    Adjusted_P_Value_RT_FIXED = p.adjust(P_Value_RT_FIXED, method = "fdr"),
+    Adjusted_P_Value_RT_1back = p.adjust(P_Value_RT_1back, method = "fdr"),
+    Adjusted_P_Value_RT_2back = p.adjust(P_Value_RT_2back, method = "fdr"),
+    Adjusted_P_Value_RT_1back_interaction = p.adjust(P_Value_RT_1back_interaction, method = "fdr"),
+    Adjusted_P_Value_RT_2back_interaction = p.adjust(P_Value_RT_2back_interaction, method = "fdr"),
+    Adjusted_P_Value_dprime_FIXED = p.adjust(P_Value_dprime_FIXED, method = "fdr"),
+    Adjusted_P_Value_dprime_1back = p.adjust(P_Value_dprime_1back, method = "fdr"),
+    Adjusted_P_Value_dprime_2back = p.adjust(P_Value_dprime_2back, method = "fdr"),
+    Adjusted_P_Value_dprime_1back_interaction = p.adjust(P_Value_dprime_1back_interaction, method = "fdr"),
+    Adjusted_P_Value_dprime_2back_interaction = p.adjust(P_Value_dprime_2back_interaction, method = "fdr")
+  )
+
+# Get all the column names
+current_columns <- colnames(final_results)
+
+# Initialize a vector to store the final column order
+desired_order <- c("Variable")  # Start with the "Variable" column
+
+# Loop through each outcome variable (Acc, RT, dprime)
+outcome_variables <- c("Acc", "RT", "dprime")
+
+for (outcome in outcome_variables) {
+  # Find Beta, P_Value, and Adjusted_P_Value columns for each outcome
+  beta_columns <- grep(paste0("^Beta_", outcome), current_columns, value = TRUE)
+  p_value_columns <- grep(paste0("^P_Value_", outcome), current_columns, value = TRUE)
+  adjusted_p_value_columns <- grep(paste0("^Adjusted_P_Value_", outcome), current_columns, value = TRUE)
+  
+  # Append these columns to the desired order
+  desired_order <- c(desired_order, beta_columns, p_value_columns, adjusted_p_value_columns)
+}
+
+# Reorder the columns based on the dynamic desired_order
+final_results <- final_results[, desired_order]
+
+# Render the table in HTML format with kable
+final_results %>%
+  kable(format = "html", caption = "Summary of Model Results with Adjusted P-Values and Interaction Terms") %>%
+  kable_styling(full_width = FALSE)
+
+```
+
