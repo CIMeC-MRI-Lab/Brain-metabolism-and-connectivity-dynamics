@@ -1,12 +1,14 @@
 # Brain-metabolism-and-connectivity-dynamics
 
 ## Description
-This repository contains the scripts used for the study "Multiscale excitation-inhibition balance dynamics: integrating metabolite kinetics with time-varying executive networks"
+This repository contains the scripts used for the study _"Multiscale excitation-inhibition balance dynamics: integrating metabolite kinetics with time-varying executive networks"_
 It implements the analysis of novel interleaved dynamic functional MRI and functional edited-MRS to investigate temporal variation in neurometabolites and neurovascular compartments as a function of cognitive load increase. 
 
 Sample code to reproduce results of the manuscript "X" by Saviola et al., bioRxiv 2024. https://biorxiv.org/cgi/content/short/2024.10.30.621153v1
 
-The code generates Fig.X of the paper and X analysis. More comment and details are provided within the main scripts (i.e., "X"). Some sample data (i.e. mainly behaviour) are included in the repo to make the code standalone.  
+The code generates Fig.X of the paper and X analysis. 
+More comment and details are provided within the main scripts (i.e., "X"). 
+Some sample data (i.e. mainly behaviour) are included in the repo to make the code standalone.  
 
 Please note that the code for functional and structural image preprocessing can be downloaded from: [Lnifmri_prep](https://github.com/tambalostefano/lnifmri_prep)  
 
