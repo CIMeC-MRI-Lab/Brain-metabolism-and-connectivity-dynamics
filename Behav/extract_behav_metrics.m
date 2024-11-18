@@ -4,7 +4,6 @@ clc
 % Set path
 main_dir = 'C:\Users\Utente\Desktop\Work\MR-Methods\EIB\';
 input_dir = fullfile(main_dir,'fMRS_fMRI_NBACK_project');
-% input_dir = '\\mri-storage.cimec.unitn.it\mumi-ext-001\mumi-data\USERS\Asia_Ferrari\fMRS_fMRI_NBACK_project';
 
 % Load demographics info 
 info = readtable(fullfile(main_dir,'info_demographics_35s.csv'));
