@@ -34,6 +34,6 @@ https://biorxiv.org/cgi/content/short/2024.10.30.621153v1
 - MATLAB R2020b or later
 - R 4.0.0 or later
 - Bash shell (Unix-based system or Windows Subsystem for Linux)
-- SPM12 toolbox for MATLAB
+- SPM12 toolbox (https://www.fil.ion.ucl.ac.uk/spm/software/spm12/) for MATLAB
 - Gannet (https://markmikkelsen.github.io/Gannet-docs/index.html)
 - R packages: dplyr, lme4, ggplot2, knitr, kableExtra, stats, tidyr, pacman, reshape2, ez, lmerTest, rmarkdown, lattice, DACF (install via `install.packages(c("dplyr", "lme4", "ggplot2", "knitr", "kableExtra", "stats", "tidyr", "pacman", "reshape2", "ez", "lmerTest", "rmarkdown", "lattice", "DACF"))`)
