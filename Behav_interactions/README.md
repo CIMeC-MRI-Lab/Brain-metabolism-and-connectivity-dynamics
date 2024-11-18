@@ -1,3 +1,5 @@
+## Behavioral statistical analysis for interactions with EIB static and kinetics and FPN-CAPs
+
 ## Scripts USAGE
 Scripts need to be run in the following order:
 
