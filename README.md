@@ -6,8 +6,8 @@ It implements the analysis of novel interleaved dynamic functional MRI and funct
 
 Sample code to reproduce results of the manuscript "X" by Saviola et al., bioRxiv 2024. https://biorxiv.org/cgi/content/short/2024.10.30.621153v1
 
-The code generates Fig. 1 of the paper (together with Supplementary Figures) and performed the analysis for EIB kinetics detection and the statics on behavioural performance and its respective interaction with EIB and FPN-CAPs. 
-More comment and details are provided within the main scripts (i.e., "X"). 
+The code generates Fig. 1 of the paper (together with Supplementary Figures) and performed the analysis for EIB kinetics detection (i.e. _"EIB_kinetics"_) and the statics on behavioural performance (i.e. _"Behav"_) and its respective interaction with EIB and FPN-CAPs (i.e. _"Behav_interactions"_). 
+More comment and details are provided within the main scripts readme (i.e., "README.md"). 
 Some sample data (i.e. mainly behaviour) are included in the repo to make the code standalone.  
 
 Please note that the code for functional and structural image preprocessing can be downloaded from: [Lnifmri_prep](https://github.com/tambalostefano/lnifmri_prep)  
