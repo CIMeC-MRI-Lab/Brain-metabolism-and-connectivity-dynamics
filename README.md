@@ -36,4 +36,5 @@ https://biorxiv.org/cgi/content/short/2024.10.30.621153v1
 - Bash shell (Unix-based system or Windows Subsystem for Linux)
 - SPM12 toolbox (https://www.fil.ion.ucl.ac.uk/spm/software/spm12/) for MATLAB
 - Gannet (https://markmikkelsen.github.io/Gannet-docs/index.html)
+- gramm (https://github.com/piermorel/gramm)
 - R packages: dplyr, lme4, ggplot2, knitr, kableExtra, stats, tidyr, pacman, reshape2, ez, lmerTest, rmarkdown, lattice, DACF (install via `install.packages(c("dplyr", "lme4", "ggplot2", "knitr", "kableExtra", "stats", "tidyr", "pacman", "reshape2", "ez", "lmerTest", "rmarkdown", "lattice", "DACF"))`)
