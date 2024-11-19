@@ -1,10 +1,13 @@
 # README - How to run MRS analysis
-stefano.tambalo@unitn.it, 20241111
+
+stefano.tambalo@unitn.it
+
+20241111
 
 ## Organization of raw data folders:
 
 ```
-<path-to-data-folder>/<keyword>*/MRI-MRS/<Load>/*WREF*|*EDIT*
+<path-to-data-folder>/<keyword>/MRI-MRS/<Load>/*WREF*|*EDIT*
 ```
 where:
 
