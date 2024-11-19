@@ -4,7 +4,7 @@
 This repository contains the scripts used for the study _"Multiscale excitation-inhibition balance dynamics: integrating metabolite kinetics with time-varying executive networks"_.
 It implements the analysis of novel interleaved dynamic functional MRI and functional edited-MRS to investigate temporal variation in neurometabolites and neurovascular compartments as a function of cognitive load increase. 
 
-Sample code to reproduce results of the manuscript "X" by Saviola et al., bioRxiv 2024. https://biorxiv.org/cgi/content/short/2024.10.30.621153v1
+Sample code to reproduce results of the manuscript _"Multiscale excitation-inhibition balance dynamics: integrating metabolite kinetics with time-varying executive networks"_ by Saviola et al., bioRxiv 2024. https://biorxiv.org/cgi/content/short/2024.10.30.621153v1
 
 The code generates Fig. 1 of the paper (together with Supplementary Figures) and performed the analysis for EIB kinetics detection (i.e. _"EIB_kinetics"_) and the statics on behavioural performance (i.e. _"Behav"_) and its respective interaction with EIB and FPN-CAPs (i.e. _"Behav_interactions"_). 
 More comment and details are provided within the main scripts readme (i.e., "README.md"). 
