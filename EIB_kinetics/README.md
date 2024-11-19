@@ -3,18 +3,19 @@ stefano.tambalo@unitn.it, 20241111
 
 ## Organization of raw data folders:
 
+```
 <path-to-data-folder>/<keyword>*/MRI-MRS/<Load>/*WREF*|*EDIT*
-
+```
 where:
 
-<path-to-data-folder>: root path of your data;
+path-to-data-folder: root path of your data;
 
-<keyword>*: arbitrary string included in folder names to select
+keyword*: arbitrary string included in folder names to select
 	the batch of folders to process;
 
 MRI-MRS: fixed folder name (can be edited in the main script)
 
-<Load>: arbitrary folder names that contain Load-dependent experiments.
+Load: arbitrary folder names that contain Load-dependent experiments.
 	They need to be numerically sorted in order to be processed correctly
 	(e.g. load_001/load_002/load_003 and so on...)
 
@@ -32,7 +33,9 @@ and must be added to the Matlab search path
 
 From Matlab prompt, move to:
 
-<path-to-data-folder>
+```
+path-to-data-folder
+```
 
 and call the desired function.
 
