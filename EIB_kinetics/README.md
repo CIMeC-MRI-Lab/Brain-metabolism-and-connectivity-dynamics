@@ -67,3 +67,17 @@ keyword = *keyword* (see "Organization of raw data folders")
 wsize = sliding window size (numbers of ON/OFF edited pairs)
 
 wstep = step size of the sliding window (numbers of ON/OFF edited pairs)
+
+## Sample dataset
+
+We included a reduced version of the Matlab workspace to test the code. This set of variables includes all the relevant information to run the processing of MRS data (fitted spectra, subject codes and strings to generate output files). The workspace can be loaded from Matlab prompt:
+
+```
+<matlab prompt>> load('dummyworkspace.mat')
+```
+
+Then, code cells starting from line XXX can be executed within the Matlab IDE. Before running the code, please create a dummy results folder in the current working directory:
+
+```
+mkdir deleteme_deleteme
+```
