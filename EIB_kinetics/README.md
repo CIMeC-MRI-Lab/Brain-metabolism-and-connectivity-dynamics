@@ -39,7 +39,7 @@ path-to-data-folder
 
 and call the desired function.
 
-*Static MRS*:
+**Static MRS**:
 
 ```
 <matlab prompt>> lnifmri_mrs_static_analysis(fittingmethod, keyword)
@@ -47,16 +47,20 @@ and call the desired function.
 
 where
 
-fittingmethod = [1 = OSPREY | 2 = GANNET ]
-keyword = <keyword> (see "Organization of raw data folders")
+fittingmethod = [1 = OSPREY | 2 = GANNET]
 
-*Dynamic (sliding window) MRS*:
+keyword = *keyword* (see "Organization of raw data folders")
+
+**Dynamic (sliding window) MRS**:
 
 ```
 <matlab prompt>> lnifmri_mrs_dynamic_analysis(fittingmethod, keyword, wsize, wstep)
 ```
 
-fittingmethod = [1 = OSPREY | 2 = GANNET ]
-keyword = <keyword> (see "Organization of raw data folders")
+fittingmethod = [1 = OSPREY | 2 = GANNET]
+
+keyword = *keyword* (see "Organization of raw data folders")
+
 wsize = sliding window size (numbers of ON/OFF edited pairs)
+
 wstep = step size of the sliding window (numbers of ON/OFF edited pairs)
