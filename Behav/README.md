@@ -1,6 +1,11 @@
 ---
+# README - How to run Behavioral Statistical Analysis
 
-# Behavioral Statistical Analysis
+francesca.saviola@epfl.ch
+barbara.cassone@unimib.it
+asia.ferrari@unige.ch
+
+20252002
 
 This repository contains scripts to perform behavioral statistical analysis on reaction times (RTs), accuracy, and d-prime metrics derived from n-back tasks. Follow the steps below to execute the analysis in the correct order.
 
