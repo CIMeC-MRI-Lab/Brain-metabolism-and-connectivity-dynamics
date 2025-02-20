@@ -1,6 +1,11 @@
 ---
+# README - How to run Behavioral Statistical Analysis for Interactions with EIB (static and kinetics) and FPN-CAPs
 
-# Behavioral Statistical Analysis for Interactions with EIB (Static and Kinetics) and FPN-CAPs
+francesca.saviola@epfl.ch
+barbara.cassone@unimib.it
+asia.ferrari@unige.ch
+
+20252002
 
 This repository contains scripts to analyze the interactions between neurometabolites (GABA, Glx), behavioral metrics (reaction times, accuracy, d-prime), and FPN-CAP network variables (e.g., INDegree, OUTDegree, Resilience). Follow the steps below to execute the analyses in the correct order.
 
