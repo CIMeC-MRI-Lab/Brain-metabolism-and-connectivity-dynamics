@@ -110,5 +110,3 @@ This script extracts RTs, accuracy, and d-prime metrics from raw data.
 3. Modify file paths as needed to match your system's directory structure.
 
 --- 
-
-
